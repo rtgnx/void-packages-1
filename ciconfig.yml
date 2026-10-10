@@ -1,0 +1,7 @@
+version: 0.1
+targets:
+  - name: linux/aarch64
+    context: .
+    dockerfile: .
+    artifact: local
+    type: buildkit
