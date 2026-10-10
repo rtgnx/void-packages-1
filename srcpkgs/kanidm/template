@@ -4,7 +4,7 @@ version=1.10.1
 revision=1
 build_style=cargo
 metapackage="yes"
-hostmakedepends="pkg-config protobuf clang lld"
+hostmakedepends="pkg-config protobuf clang lld sqlite-devel"
 makedepends="sqlite-devel openssl-devel pam-devel eudev-libudev-devel"
 depends="kanidm-client>=${version}_${revision} kanidm-server>=${version}_${revision}"
 short_desc="Simple and secure identity management platform"
@@ -13,6 +13,10 @@ license="MPL-2.0"
 homepage="https://kanidm.com/"
 distfiles="https://github.com/kanidm/kanidm/archive/refs/tags/v${version}.tar.gz"
 checksum=338911c568f44957ef2d0f2136c6dc71218701b5f018e359720289238a3b8e86
+
+case "$XBPS_TARGET_MACHINE" in
+	i686*) broken="rustc OOMs building kanidmd_lib in release mode on i686" ;;
+esac
 
 make_install_args="--path ."
 
@@ -37,6 +41,23 @@ make_dirs="
 subpackages="kanidm-server kanidm-client"
 
 do_build() {
+	if [ "$CROSS_BUILD" ]; then
+		export CC_${RUST_TARGET//-/_}="${CC}"
+		export CXX_${RUST_TARGET//-/_}="${CXX}"
+		export CFLAGS_${RUST_TARGET//-/_}="${CFLAGS}"
+		export CXXFLAGS_${RUST_TARGET//-/_}="${CXXFLAGS}"
+
+		export CC_${RUST_BUILD//-/_}="${BUILD_CC}"
+		export CXX_${RUST_BUILD//-/_}="${BUILD_CXX}"
+		export CFLAGS_${RUST_BUILD//-/_}="${BUILD_CFLAGS}"
+		export CXXFLAGS_${RUST_BUILD//-/_}="${BUILD_CXXFLAGS}"
+
+		export CC="${BUILD_CC}"
+		export CXX="${BUILD_CXX}"
+		export CFLAGS="${BUILD_CFLAGS}"
+		export CXXFLAGS="${BUILD_CXXFLAGS}"
+	fi
+
 	if [ -z "$CROSS_BUILD" ]; then
 		export CC=clang
 		export CXX=clang++
